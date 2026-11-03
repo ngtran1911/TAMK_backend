@@ -1,0 +1,29 @@
+
+
+###
+GET http://localhost:3000/moviess
+
+GET http://localhost:3000/movies
+
+
+### Create movie
+POST http://localhost:3000/movies
+Content-Type: application/json
+
+{
+  "title": "Dune",
+  "director": "Denis Villeneuve",
+  "year": 2021
+}
+
+### Missing fields
+POST http://localhost:3000/movies
+Content-Type: application/json
+
+{
+  "title": "Dune"
+}
+
+###
+GET http://localhost:3000/movies
+
