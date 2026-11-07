@@ -151,6 +151,24 @@ app.patch("/movies/:id", (req, res) => {
   res.status(200).json(movie);
 });
 
+//Delete
+app.delete("/movies/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const index = movies.findIndex((movie) => movie.id === id);
+  if (index === -1) {
+    res.status(404).json({
+      error: {
+        code: "MOVIE_NOT_FOUND",
+        message: "Movie not found",
+      },
+    });
+    return;
+  }
+
+  movies.splice(index, 1);
+  res.status(200).send();
+});
+
 //start the server once only , bottom
 app.listen(3000, () => {
   console.log("Server is runningg");
