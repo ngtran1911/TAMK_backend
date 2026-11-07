@@ -75,7 +75,7 @@ app.get("/movies/:id", (req, res) => {
   res.status(200).json(result);
 });
 
-//Implement a complete replacement of an existing movie: PUT
+//PUT : Implement a complete replacement of an existing movie:
 app.put("/movies/:id", (req, res) => {
   const id = Number(req.params.id);
   const index = movies.findIndex((movie) => movie.id === id);
@@ -90,8 +90,8 @@ app.put("/movies/:id", (req, res) => {
     return;
   }
 
-  //400 : data missing
-  const { title, director, genre } = req.body;
+  //400
+  const { title, year, genre } = req.body;
   if (title === undefined || year === undefined || genre === undefined) {
     return res.status(400).json({
       error: {
@@ -126,6 +126,29 @@ app.post("/movies", (req, res) => {
   const newMovie = { id, title, director, year };
   movies.push(newMovie);
   res.status(201).json(newMovie);
+});
+
+//PATCH :Implement a partial update:
+app.patch("/movies/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const movie = movies.find((movie) => movie.id === id);
+  // 404 : doesnot exist
+  if (!movie) {
+    res.status(404).json({
+      error: {
+        code: "MOVIE_NOT_FOUND",
+        message: "Movie not found",
+      },
+    });
+    return;
+  }
+
+  const { title, year, genre } = req.body;
+  if (title !== undefined) movie.title = title;
+  if (year !== undefined) movie.year = year;
+  if (genre !== undefined) movie.genre = genre;
+
+  res.status(200).json(movie);
 });
 
 //start the server once only , bottom
