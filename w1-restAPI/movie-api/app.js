@@ -5,9 +5,9 @@ app.use(express.json());
 
 // movie data store in memory
 let movies = [
-  { id: 1, title: "Inception", director: "Christopher Nolan", year: 2010 },
-  { id: 2, title: "The Matrix", director: "The Wachowskis", year: 1999 },
-  { id: 3, title: "Parasite", director: "Bong Joon-ho", year: 2019 },
+  { id: 1, title: "Inception", year: 2010, genre: "Sci-Fi" },
+  { id: 2, title: "The Matrix", year: 1999, genre: "Sci-Fi" },
+  { id: 3, title: "Parasite", year: 2019, genre: "Thriller" },
 ];
 
 function validateMovie(body, partial = false) {
@@ -76,9 +76,10 @@ app.get("/movies/:id", (req, res) => {
 });
 
 //Implement a complete replacement of an existing movie: PUT
-app.put("movies/:id", (req, res) => {
+app.put("/movies/:id", (req, res) => {
   const id = Number(req.params.id);
-  const index = movies.findIndex((movies) => movies.id === id);
+  const index = movies.findIndex((movie) => movie.id === id);
+  // 404 : doesnot exist
   if (index === -1) {
     res.status(404).json({
       error: {
@@ -89,19 +90,19 @@ app.put("movies/:id", (req, res) => {
     return;
   }
 
-  const { title, director, year } = req.body;
-  //lack of 1 of those info throw error
-  if (!title || !director || !year) {
-    res.status(400).json({
-      //400:BAD REQUEST
+  //400 : data missing
+  const { title, director, genre } = req.body;
+  if (title === undefined || year === undefined || genre === undefined) {
+    return res.status(400).json({
       error: {
-        code: "TITLE_DIRECTOR_YEAR_ARE_REQUIRED",
-        message: "title, director and year are required",
+        code: "VALIDATION_ERROR",
+        message: "Movie data is invalid",
+        details: ["title, year and genre are required"],
       },
     });
-    return;
   }
 
+  //200 : ok
   movies[index] = { id, title, year, genre };
   res.status(200).json(movies[index]);
 });
