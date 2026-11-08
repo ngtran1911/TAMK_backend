@@ -3,14 +3,12 @@ const express = require("express");
 const morgan = require("morgan");
 
 const app = express();
-//app.use(express.json());
+app.use(express.json());
 
-app.use(morgan("dev"));
-
-function simpleLogger(req, res, next) {
-  console.log(req.method, req.originalUrl);
+/*function simpleLogger(req, res, next) {
+  console.log(req.method, req.originalUrl, req.body);
   next();
-}
+}*/
 
 app.use(simpleLogger);
 
