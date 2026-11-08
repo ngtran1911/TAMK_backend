@@ -96,7 +96,6 @@ app.put("/movies/:id", (req, res) => {
   }
 
   //400
-  const { title, year, genre } = req.body;
   const errors = validateMovie(req.body, true);
   if (errors.length > 0) {
     return res.status(400).json({
@@ -113,24 +112,30 @@ app.put("/movies/:id", (req, res) => {
   res.status(200).json(movies[index]);
 });
 
-//create a movies using POST
+// POST /movies: create a new movie
 app.post("/movies", (req, res) => {
-  //get data from input
-  const { title, director, year } = req.body;
-  //lack of 1 of those info throw error
-  if (!title || !director || !year) {
-    res.status(400).json({
-      //400:BAD REQUEST
+  // 400: validate all fields (strict mode)
+  const errors = validateMovie(req.body, true);
+  if (errors.length > 0) {
+    return res.status(400).json({
       error: {
-        code: "TITLE_DIRECTOR_YEAR_ARE_REQUIRED",
-        message: "title, director and year are required",
+        code: "VALIDATION_ERROR",
+        message: "Movie data is invalid",
+        details: errors,
       },
     });
-    return;
-  } //true -> id +1, display new movies data
-  const id = movies.length + 1;
-  const newMovie = { id, title, director, year };
+  }
+
+  // unique id: biggest existing id + 1 (1 if the array is empty)
+  const id =
+    movies.length > 0 ? Math.max(...movies.map((movie) => movie.id)) + 1 : 1;
+
+  // take the three fields from the request body
+  const { title, year, genre } = req.body;
+  const newMovie = { id, title, year, genre };
   movies.push(newMovie);
+
+  // 201: created
   res.status(201).json(newMovie);
 });
 
@@ -149,6 +154,19 @@ app.patch("/movies/:id", (req, res) => {
     return;
   }
 
+  //400 validate fields that were sent
+  const errors = validateMovie(req.body, false);
+  if (errors.length > 0) {
+    return res.status(400).json({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Movie data is invalid",
+        details: errors,
+      },
+    });
+  }
+
+  //update only provided fields
   const { title, year, genre } = req.body;
   if (title !== undefined) movie.title = title;
   if (year !== undefined) movie.year = year;
