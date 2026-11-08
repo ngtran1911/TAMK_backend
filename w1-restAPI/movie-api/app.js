@@ -59,14 +59,14 @@ function validateMovie(body, isStrict = true) {
 
 app.get("/movies", (req, res) => {
   //get genre or minYear from query
-  const { genre, minYear } = req.query;
+  const { genre, minYear, sort } = req.query;
   //copy movies
   let filteredMovies = [...movies];
   // if genre was sent
   if (genre !== undefined) {
     //return all matching genre item , case-insensitive
     filteredMovies = filteredMovies.filter(
-      (movies) => movies.genre.toLowerCase() === genre.toLowerCase(),
+      (movie) => movie.genre.toLowerCase() === genre.toLowerCase(),
     );
   }
 
@@ -86,6 +86,20 @@ app.get("/movies", (req, res) => {
     filteredMovies = filteredMovies.filter(
       (movie) => movie.year >= minYearNumber,
     );
+  }
+
+  // add sort
+  if (sort === "year") {
+    filteredMovies.sort((a, b) => a.year - b.year);
+  } else if (sort === "title") {
+    filteredMovies.sort((a, b) => a.title.localeCompare(b.title));
+  } else if (sort) {
+    return res.status(400).json({
+      error: {
+        code: "INVALID_QUERY_PARAMETER",
+        message: "sort must be year or title ",
+      },
+    });
   }
   res.status(200).json(filteredMovies);
 });
