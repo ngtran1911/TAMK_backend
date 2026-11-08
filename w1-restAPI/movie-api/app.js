@@ -10,14 +10,19 @@ let movies = [
   { id: 3, title: "Parasite", year: 2019, genre: "Thriller" },
 ];
 
+// partial = false → strict mode (POST, PUT): title, year and genre are all required
+// partial = true  → relaxed mode (PATCH): missing fields are allowed,
+//                   but any field that IS sent must still be valid
 function validateMovie(body, partial = false) {
   const errors = [];
   const maximumYear = new Date().getFullYear() + 5;
 
+  //--------TITLE------------
+  //! strict mode: false , title are required ( POST, PUT)
   if (!partial && body.title === undefined) {
     errors.push("title is required");
   }
-
+  //IF there is title , !== string OR "" === 0 -> error
   if (
     body.title !== undefined &&
     (typeof body.title !== "string" || body.title.trim().length === 0)
@@ -25,10 +30,13 @@ function validateMovie(body, partial = false) {
     errors.push("title must be a non-empty string");
   }
 
+  //----------YEAR--------
+  //strict mode : year must be present
   if (!partial && body.year === undefined) {
     errors.push("year is required");
   }
-
+  //Value check: year must be whole num,
+  //between 1888 and now+5year
   if (
     body.year !== undefined &&
     (!Number.isInteger(body.year) ||
@@ -38,10 +46,12 @@ function validateMovie(body, partial = false) {
     errors.push("year must be a valid integer");
   }
 
+  //----------GENRE-------
+  //strict mode : need genre
   if (!partial && body.genre === undefined) {
     errors.push("genre is required");
   }
-
+  // value check : genre should be non-empty string
   if (
     body.genre !== undefined &&
     (typeof body.genre !== "string" || body.genre.trim().length === 0)
