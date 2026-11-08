@@ -97,13 +97,13 @@ app.put("/movies/:id", (req, res) => {
 
   //400
   const { title, year, genre } = req.body;
-  const error = validateMovie(req.body);
-  if (title === undefined || year === undefined || genre === undefined) {
+  const errors = validateMovie(req.body, true);
+  if (errors.length > 0) {
     return res.status(400).json({
       error: {
         code: "VALIDATION_ERROR",
         message: "Movie data is invalid",
-        details: ["title, year and genre are required"],
+        details: errors,
       },
     });
   }
