@@ -57,9 +57,37 @@ function validateMovie(body, isStrict = true) {
   return errors;
 }
 
-//with path /movies to get all movies data using GET
 app.get("/movies", (req, res) => {
-  res.status(200).json(movies);
+  //get genre or minYear from query
+  const { genre, minYear } = req.query;
+  //copy movies
+  let filteredMovies = [...movies];
+  // if genre was sent
+  if (genre !== undefined) {
+    //return all matching genre item , case-insensitive
+    filteredMovies = filteredMovies.filter(
+      (movies) => movies.genre.toLowerCase() === genre.toLowerCase(),
+    );
+  }
+
+  //if minYear was sent
+  if (minYear !== undefined) {
+    const minYearNumber = Number(minYear);
+
+    if (!Number.isInteger(minYearNumber)) {
+      return res.status(400).json({
+        error: {
+          code: "INVALID_QUERY_PARAMETER",
+          message: "minYear must be an integer",
+        },
+      });
+    }
+
+    filteredMovies = filteredMovies.filter(
+      (movie) => movie.year >= minYearNumber,
+    );
+  }
+  res.status(200).json(filteredMovies);
 });
 
 // Get movies by id 1 movies
