@@ -1,7 +1,18 @@
 // 1. setup
 const express = require("express");
+const morgan = require("morgan");
+
 const app = express();
-app.use(express.json());
+//app.use(express.json());
+
+app.use(morgan("dev"));
+
+function simpleLogger(req, res, next) {
+  console.log(req.method, req.originalUrl);
+  next();
+}
+
+app.use(simpleLogger);
 
 // movie data store in memory
 let movies = [
@@ -122,6 +133,33 @@ app.get("/movies/:id", (req, res) => {
   res.status(200).json(result);
 });
 
+// POST /movies: create a new movie
+app.post("/movies", (req, res) => {
+  // 400: validate all fields (strict mode)
+  const errors = validateMovie(req.body, true);
+  if (errors.length > 0) {
+    return res.status(400).json({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Movie data is invalid",
+        details: errors,
+      },
+    });
+  }
+
+  // unique id: biggest existing id + 1 (1 if the array is empty)
+  const id =
+    movies.length > 0 ? Math.max(...movies.map((movie) => movie.id)) + 1 : 1;
+
+  // take the three fields from the request body
+  const { title, year, genre } = req.body;
+  const newMovie = { id, title, year, genre };
+  movies.push(newMovie);
+
+  // 201: created
+  res.status(201).json(newMovie);
+});
+
 //PUT : Implement a complete replacement of an existing movie:
 app.put("/movies/:id", (req, res) => {
   const id = Number(req.params.id);
@@ -152,33 +190,6 @@ app.put("/movies/:id", (req, res) => {
   //200 : ok
   movies[index] = { id, title, year, genre };
   res.status(200).json(movies[index]);
-});
-
-// POST /movies: create a new movie
-app.post("/movies", (req, res) => {
-  // 400: validate all fields (strict mode)
-  const errors = validateMovie(req.body, true);
-  if (errors.length > 0) {
-    return res.status(400).json({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Movie data is invalid",
-        details: errors,
-      },
-    });
-  }
-
-  // unique id: biggest existing id + 1 (1 if the array is empty)
-  const id =
-    movies.length > 0 ? Math.max(...movies.map((movie) => movie.id)) + 1 : 1;
-
-  // take the three fields from the request body
-  const { title, year, genre } = req.body;
-  const newMovie = { id, title, year, genre };
-  movies.push(newMovie);
-
-  // 201: created
-  res.status(201).json(newMovie);
 });
 
 //PATCH :Implement a partial update:
@@ -233,6 +244,28 @@ app.delete("/movies/:id", (req, res) => {
 
   movies.splice(index, 1);
   res.status(200).send();
+});
+
+//unknown middleware:
+app.use((req, res) => {
+  res.status(404).json({
+    error: {
+      code: "ROUTE_NOT_FOUND",
+      message: "The requested route does not exist",
+    },
+  });
+});
+
+//error handling
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  res.status(500).json({
+    error: {
+      code: "INTERNAL_SERVER_ERROR",
+      message: "An unexpected server error occurred",
+    },
+  });
 });
 
 //start the server once only , bottom
