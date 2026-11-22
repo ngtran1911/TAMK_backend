@@ -1,16 +1,31 @@
 // 1. setup
+require("dotenv").config();
+
 const express = require("express");
 const morgan = require("morgan");
-
+const pool = require("./db");
 const app = express();
 app.use(express.json());
+app.use(morgan("dev"));
 
+app.get("/health/database", async (req, res, next) => {
+  try {
+    const result = await pool.query("SELECT NOW() AS database_time");
+
+    res.json({
+      status: "ok",
+      databaseTime: result.rows[0].database_time,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 /*function simpleLogger(req, res, next) {
   console.log(req.method, req.originalUrl, req.body);
   next();
 }*/
 
-app.use(simpleLogger);
+//app.use(simpleLogger);
 
 // movie data store in memory
 let movies = [
@@ -267,6 +282,6 @@ app.use((err, req, res, next) => {
 });
 
 //start the server once only , bottom
-app.listen(3000, () => {
-  console.log("Server is runningg");
+app.listen(process.env.PORT, () => {
+  console.log(`Server is running on http://localhost:${process.env.PORT}`);
 });
